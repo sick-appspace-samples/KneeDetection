@@ -37,43 +37,8 @@ local function graphDeco(color, title, overlay)
   return deco
 end
 
-local function interpolate(point1, point2, x)
-  local distance = Point.getX(point2) - Point.getX(point1)
-  local xPos = (x - Point.getX(point1)) / distance
-  return Point.getY(point1) * (1 - xPos) + Point.getY(point2) * xPos
-end
-
-local function polygonToProfile(polygon)
-  local valueVec = {}
-  local coordinateVec = {}
-  local curPointIndex = 1
-  for mm = polygon[1]:getX(), polygon[#polygon]:getX(), 0.1 do
-    while polygon[curPointIndex + 1]:getX() < mm do
-      curPointIndex = curPointIndex + 1
-    end
-
-    valueVec[#valueVec + 1] = interpolate(polygon[curPointIndex], polygon[curPointIndex + 1], mm)
-    coordinateVec[#coordinateVec + 1] = mm
-  end
-
-  return Profile.createFromVector(valueVec, coordinateVec)
-end
-
-local function addRandomNoiseToProfile(profile, maxAmplitude)
-  local randProfile = Profile.create(Profile.getSize(profile))
-  for i = 0, Profile.getSize(profile) - 1 do
-    local randomNum = math.random()
-    local randomSign = math.random(2)
-    randomNum = (-1) ^ randomSign * randomNum * maxAmplitude
-    Profile.setValue(randProfile, i, randomNum)
-  end
-  return Profile.add(profile, randProfile)
-end
 
 local helper = {}
 helper.getDeco = getDeco
 helper.graphDeco = graphDeco
-helper.interpolate = interpolate
-helper.polygonToProfile = polygonToProfile
-helper.addRandomNoiseToProfile = addRandomNoiseToProfile
 return helper

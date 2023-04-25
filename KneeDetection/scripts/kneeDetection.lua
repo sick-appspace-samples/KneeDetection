@@ -48,14 +48,15 @@ local function main()
   -- Scan polygon ---------------------
   -------------------------------------
 
-  local polyProfile = helper.polygonToProfile(POLYGON)
+  local polyProfile = Profile.createFromPoints(POLYGON)
+  polyProfile = Profile.resizeScale(polyProfile, 50)
 
   -------------------------------------
   -- Generate random noise ------------
   -------------------------------------
 
   if ENABLE_NOISE then
-    polyProfile = helper.addRandomNoiseToProfile(polyProfile, 0.25)
+    Profile.addNoiseInplace(polyProfile, "UNIFORM", -0.1, 0.1)
   end
 
   -------------------------------------
@@ -85,15 +86,12 @@ local function main()
   -------------------------------------
 
   table.sort(kneeIndices)
-  local kneePoints = {}
-  local kneePointsInDerivative = {}
 
-  for _, index in pairs(kneeIndices) do
-    kneePoints[#kneePoints + 1] =
-      Point.create(polyProfile:getCoordinate(index), polyProfile:getValue(index))
-    kneePointsInDerivative[#kneePointsInDerivative + 1] =
-      Point.create(secondDerivative:getCoordinate(index), secondDerivative:getValue(index))
-  end
+  local kneePoints = Point.create(polyProfile:getCoordinate(kneeIndices),
+                                  polyProfile:getValue(kneeIndices))
+  local kneePointsInDerivative =
+      Point.create(secondDerivative:getCoordinate(kneeIndices),
+                        secondDerivative:getValue(kneeIndices))
 
   print('\nNumber of found knees: ' .. #kneePoints .. '\n')
   for i, knee in pairs(kneePoints) do
@@ -113,20 +111,20 @@ local function main()
   Script.sleep(DELAY) -- For demonstration purpose only
 
   v:clear()
-  v:addProfile(polyProfile, helper.graphDeco(GREYED_OUT, 'Second derivative'))
-  v:addProfile(secondDerivative, helper.graphDeco(LINE_COLOR, '', true))
+  local id = v:addProfile(polyProfile, helper.graphDeco(GREYED_OUT, 'Second derivative'))
+  v:addProfile(secondDerivative, helper.graphDeco(LINE_COLOR, '', true), nil, id)
   v:present()
   Script.sleep(DELAY) -- For demonstration purpose only
 
-  v:addShape(kneePointsInDerivative, helper.getDeco(KNEE_COLOR))
+  v:addShape(kneePointsInDerivative, helper.getDeco(KNEE_COLOR), nil, id)
   v:present()
   Script.sleep(DELAY) -- For demonstration purpose only
 
   v:clear()
-  v:addProfile(secondDerivative, helper.graphDeco(GREYED_OUT, 'Found knees'))
-  v:addShape(kneePointsInDerivative, helper.getDeco(GREYED_OUT_DARKER))
-  v:addProfile(polyProfile, helper.graphDeco(LINE_COLOR, '', true))
-  v:addShape(kneePoints, helper.getDeco(KNEE_COLOR))
+  id = v:addProfile(secondDerivative, helper.graphDeco(GREYED_OUT, 'Found knees'))
+  v:addShape(kneePointsInDerivative, helper.getDeco(GREYED_OUT_DARKER), nil, id)
+  v:addProfile(polyProfile, helper.graphDeco(LINE_COLOR, '', true), nil, id)
+  v:addShape(kneePoints, helper.getDeco(KNEE_COLOR), nil, id)
   v:present()
 
   print('App finished.')
